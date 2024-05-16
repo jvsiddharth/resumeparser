@@ -11,15 +11,7 @@ app = Flask(__name__)
 
 # Define the default keywords and their weights for scoring
 default_keywords_weights = {
-    'python': 5,
-    'java': 4,
-    'javascript': 3,
-    'html': 2,
-    'css': 2,
-    'docker': 4,
-    'aws': 5,
-    'database': 4,
-    'sql': 4,
+    
 }
 
 def parse_docx(file_data):
@@ -55,15 +47,26 @@ def calculate_score(text, job_requirements, keywords_weights):
     words = re.findall(r'\b\w+\b', text.lower())  # Extract words using regular expression
     for word in words:
         word_count[word] += 1
-    total_score = 0
-    for requirement in job_requirements:
-        requirement_words = requirement.lower().split()  # Split requirement into individual words
-        matched_words = [word for word in requirement_words if word in word_count]  # Check for each word in the requirement
-        if len(matched_words) == len(requirement_words):  # If all words in the requirement are found
-            score = sum(word_count[word] * keywords_weights.get(word, 1) for word in matched_words)
-            total_score += score
-    return total_score
 
+    total_score = 0
+
+    # Calculate score based on job requirements
+    for requirement in job_requirements:
+        requirement_score = 0
+        requirement_words = requirement.lower().split()
+        for word in requirement_words:
+            if word in word_count:
+                requirement_score += word_count[word]
+            elif word in keywords_weights:
+                requirement_score += keywords_weights[word]
+        total_score += requirement_score
+
+    # Calculate score based on remaining keywords
+    for keyword, weight in keywords_weights.items():
+        if keyword in word_count:
+            total_score += word_count[keyword] * weight
+
+    return total_score
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
