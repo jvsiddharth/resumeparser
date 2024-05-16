@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resume Parser Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Resume Parser Results</h1>
+    <table>
+        <tr>
+            <th>Filename</th>
+            <th>Score</th>
+        </tr>
+        {% for resume in resumes %}
+        <tr>
+            <td>{{ resume.filename }}</td>
+            <td>{{ resume.score }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

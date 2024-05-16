@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resume Parser</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        textarea, input[type="file"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Resume Parser</h1>
+    <form method="post" enctype="multipart/form-data">
+        <label for="job_requirements">Job Requirements:</label>
+        <textarea id="job_requirements" name="job_requirements" rows="4" required></textarea>
+        <label for="resumes">Upload Resumes:</label>
+        <input type="file" id="resumes" name="resumes" multiple required>
+        <br><br>
+
+        <label>Keywords and Weights:</label>
+        {% for keyword, weight in keywords_weights.items() %}
+        <div>
+            <input type="text" name="{{ keyword }}" value="{{ keyword }}" required> <input type="number" name="{{ keyword }}" value="{{ weight }}" required>
+        </div>
+        {% endfor %}
+
+        <input type="submit" value="Parse Resumes">
+    </form>
+</body>
+</html>
