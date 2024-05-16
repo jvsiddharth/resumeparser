@@ -4,6 +4,8 @@ from flask import Flask, render_template, request, jsonify
 from docx import Document
 import pdfplumber
 import io
+import re
+
 
 app = Flask(__name__)
 
@@ -46,34 +48,50 @@ def parse_resume(file_storage):
     else:
         raise ValueError("Unsupported file type. Only .docx, .doc, and .pdf files are supported.")
 
+import re
+
 def calculate_score(text, job_requirements, keywords_weights):
     word_count = defaultdict(int)
-    for word in text.split():
-        word_count[word.lower()] += 1
+    words = re.findall(r'\b\w+\b', text.lower())  # Extract words using regular expression
+    for word in words:
+        word_count[word] += 1
     total_score = 0
     for requirement in job_requirements:
-        for keyword in requirement.lower().split():
-            total_score += word_count[keyword] * keywords_weights.get(keyword, 1)
+        requirement_words = requirement.lower().split()  # Split requirement into individual words
+        matched_words = [word for word in requirement_words if word in word_count]  # Check for each word in the requirement
+        if len(matched_words) == len(requirement_words):  # If all words in the requirement are found
+            score = sum(word_count[word] * keywords_weights.get(word, 1) for word in matched_words)
+            total_score += score
     return total_score
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        job_requirements = request.form.get('job_requirements', '').split(',')
-        keyword_weights = {k: int(v) if k not in default_keywords_weights else default_keywords_weights[k] for k, v in request.form.items() if k != 'resumes' and k != 'job_requirements'}
-        resumes = request.files.getlist('resumes')
-        parsed_resumes = []
+        try:
+            job_requirements = request.form.get('job_requirements', '').split(',')
+            keyword_weights = {}
+            for key, value in request.form.items():
+                if key.startswith('keyword_'):
+                    keyword = key.replace('keyword_', '')
+                    weight_key = f'weight_{keyword}'
+                    keyword_weights[value.lower()] = int(request.form[weight_key])
+            resumes = request.files.getlist('resumes')
+            parsed_resumes = []
 
-        for resume in resumes:
-            try:
-                resume_text = parse_resume(resume)
-                score = calculate_score(resume_text, job_requirements, keyword_weights)
-                parsed_resumes.append({'filename': resume.filename, 'score': score})
-            except ValueError as e:
-                print(f"Error parsing resume {resume.filename}: {str(e)}")
+            for resume in resumes:
+                try:
+                    resume_text = parse_resume(resume)
+                    score = calculate_score(resume_text, job_requirements, keyword_weights)
+                    parsed_resumes.append({'filename': resume.filename, 'score': score})
+                except ValueError as e:
+                    print(f"Error parsing resume {resume.filename}: {str(e)}")
 
-        sorted_resumes = sorted(parsed_resumes, key=lambda x: x['score'], reverse=True)
-        return render_template('results.html', resumes=sorted_resumes)
+            sorted_resumes = sorted(parsed_resumes, key=lambda x: x['score'], reverse=True)
+            return render_template('results.html', resumes=sorted_resumes, keywords_weights=keyword_weights)
+
+        except Exception as e:
+            return render_template('error.html', error=str(e))
 
     return render_template('index.html', keywords_weights=default_keywords_weights)
 

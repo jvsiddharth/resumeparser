@@ -27,13 +27,26 @@
             margin-bottom: 10px;
             box-sizing: border-box;
         }
-        input[type="submit"] {
+        input[type="submit"], .add-keyword, .remove-keyword {
             background-color: #4CAF50;
             color: white;
             padding: 10px 20px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            margin-top: 10px;
+        }
+        .keyword-row {
+            display: flex;
+            align-items: center;
+        }
+        .keyword-input {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .weight-input {
+            width: 100px;
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -47,13 +60,64 @@
         <br><br>
 
         <label>Keywords and Weights:</label>
-        {% for keyword, weight in keywords_weights.items() %}
-        <div>
-            <input type="text" name="{{ keyword }}" value="{{ keyword }}" required> <input type="number" name="{{ keyword }}" value="{{ weight }}" required>
+        <div id="keywords-container">
+            {% for keyword, weight in keywords_weights.items() %}
+            <div class="keyword-row">
+                <input type="text" class="keyword-input" name="keywords[]" value="{{ keyword }}" required>
+                <input type="number" class="weight-input" name="weights[]" value="{{ weight }}" required>
+                <button class="remove-keyword" type="button">Remove</button>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+        <button class="add-keyword" type="button">Add Keyword</button>
 
         <input type="submit" value="Parse Resumes">
     </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addKeywordButton = document.querySelector('.add-keyword');
+            const keywordsContainer = document.getElementById('keywords-container');
+
+            addKeywordButton.addEventListener('click', function() {
+                const keywordRow = document.createElement('div');
+                keywordRow.classList.add('keyword-row');
+
+                const keywordInput = document.createElement('input');
+                keywordInput.type = 'text';
+                keywordInput.classList.add('keyword-input');
+                keywordInput.name = 'keywords[]';
+                keywordInput.placeholder = 'Enter Keyword';
+                keywordInput.required = true;
+
+                const weightInput = document.createElement('input');
+                weightInput.type = 'number';
+                weightInput.classList.add('weight-input');
+                weightInput.name = 'weights[]';
+                weightInput.placeholder = 'Enter Weight';
+                weightInput.required = true;
+
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.type = 'button';
+                removeButton.classList.add('remove-keyword');
+                removeButton.addEventListener('click', function() {
+                    keywordsContainer.removeChild(keywordRow);
+                });
+
+                keywordRow.appendChild(keywordInput);
+                keywordRow.appendChild(weightInput);
+                keywordRow.appendChild(removeButton);
+
+                keywordsContainer.appendChild(keywordRow);
+            });
+
+            keywordsContainer.addEventListener('click', function(event) {
+                if (event.target.classList.contains('remove-keyword')) {
+                    keywordsContainer.removeChild(event.target.parentElement);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
